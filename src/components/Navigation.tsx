@@ -1,77 +1,143 @@
 "use client";
-import {Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button} from "@heroui/react";
-
-export const AcmeLogo = () => (
-  <svg fill="none" height="36" viewBox="0 0 32 32" width="36">
-    <path
-      clipRule="evenodd"
-      d="M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z"
-      fill="currentColor"
-      fillRule="evenodd"
-    />
-  </svg>
-);
+import React from "react";
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  NavbarMenuToggle,
+  NavbarMenu,
+  NavbarMenuItem,
+  Button,
+  DropdownItem,
+  DropdownTrigger,
+  Dropdown,
+  DropdownMenu,
+  Link,
+} from "@heroui/react";
+import NextLink from "next/link";
+import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
+import { useAppContext } from "@/context/AppContext";
 
 export default function Navigation() {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  const { user, logout } = useAppContext();
+
+  React.useEffect(() => setMounted(true), []);
+
   return (
     <Navbar 
+      onMenuOpenChange={setIsMenuOpen} 
+      isMenuOpen={isMenuOpen}
       isBordered 
-      maxWidth="full"
-      classNames={{
-        item: [
-          "flex",
-          "relative",
-          "h-full",
-          "items-center",
-          "data-[active=true]:after:content-['']",
-          "data-[active=true]:after:absolute",
-          "data-[active=true]:after:bottom-0",
-          "data-[active=true]:after:left-0",
-          "data-[active=true]:after:right-0",
-          "data-[active=true]:after:h-[2px]",
-          "data-[active=true]:after:rounded-[2px]",
-          "data-[active=true]:after:bg-primary",
-        ],
-      }}
+      maxWidth="xl"
     >
-      <NavbarBrand>
-        <AcmeLogo />
-        <p className="font-bold text-inherit ml-2">ACME</p>
-      </NavbarBrand>
-
-      <NavbarContent className="hidden sm:flex gap-6" justify="center">
-        <NavbarItem>
-          <Link color="foreground" href="/">
-            Accueil
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Link color="foreground" href="/trending">
-            Trending GitHub
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Link color="foreground" href="/notes">
-            Mes Notes de veille
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Link color="foreground" href="/settings">
-            Paramètres
-          </Link>
-        </NavbarItem>
+      {/* GAUCHE : Logo */}
+      <NavbarContent justify="start">
+        <NavbarMenuToggle aria-label={isMenuOpen ? "Fermer" : "Ouvrir"} className="sm:hidden" />
+        <NavbarBrand as={NextLink} href="/">
+          <p className="font-bold text-inherit italic tracking-tighter text-xl">ACME DEV</p>
+        </NavbarBrand>
       </NavbarContent>
 
+      {/* CENTRE : Liens Desktop (Visibles seulement si connecté) */}
+      <NavbarContent className="hidden sm:flex gap-10" justify="center">
+        <NavbarItem isActive={pathname === "/"}>
+          <Link as={NextLink} href="/" color={pathname === "/" ? "primary" : "foreground"}>Accueil</Link>
+        </NavbarItem>
+        
+        {user && (
+          <>
+            <NavbarItem isActive={pathname === "/trending"}>
+              <Link as={NextLink} href="/trending" color={pathname === "/trending" ? "primary" : "foreground"}>Trending</Link>
+            </NavbarItem>
+            <NavbarItem isActive={pathname === "/notes"}>
+              <Link as={NextLink} href="/notes" color={pathname === "/notes" ? "primary" : "foreground"}>Notes</Link>
+            </NavbarItem>
+          </>
+        )}
+      </NavbarContent>
+
+      {/* DROITE : Thème + Login/Menu User */}
       <NavbarContent justify="end">
-        <NavbarItem className="hidden lg:flex">
-          <Link href="#">Login</Link>
-        </NavbarItem>
         <NavbarItem>
-          <Button as={Link} color="primary" href="#" variant="flat">
-            Sign Up
-          </Button>
+          {mounted && (
+            <Button isIconOnly variant="light" radius="full" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+              {theme === "dark" ? "☀️" : "🌙"}
+            </Button>
+          )}
+        </NavbarItem>
+
+        <NavbarItem className="hidden sm:flex">
+          {user ? (
+            <Dropdown placement="bottom-end">
+              <DropdownTrigger>
+                <Button variant="flat" color="primary" className="font-bold">
+                  {user.username} ▾
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Menu utilisateur" variant="flat">
+                <DropdownItem key="profile" as={NextLink} href={`/user/${user.id}`}>Mon Profil</DropdownItem>
+                <DropdownItem key="settings" as={NextLink} href="/settings">Paramètres</DropdownItem>
+                <DropdownItem key="logout" color="danger" className="text-danger" onClick={logout}>Déconnexion</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          ) : (
+            <div className="flex gap-2">
+              <Button as={NextLink} href="/login" variant="light">Connexion</Button>
+              <Button as={NextLink} href="/register" color="primary" shadow="sm">S'inscrire</Button>
+            </div>
+          )}
         </NavbarItem>
       </NavbarContent>
+
+      {/* MOBILE MENU */}
+      <NavbarMenu>
+        <NavbarMenuItem className="mt-4">
+          <Link as={NextLink} href="/" className="w-full" size="lg" color={pathname === "/" ? "primary" : "foreground"}>Accueil</Link>
+        </NavbarMenuItem>
+
+        {user && (
+          <>
+            <NavbarMenuItem>
+              <Link as={NextLink} href="/trending" className="w-full" size="lg" color={pathname === "/trending" ? "primary" : "foreground"}>Trending</Link>
+            </NavbarMenuItem>
+            <NavbarMenuItem>
+              <Link as={NextLink} href="/notes" className="w-full" size="lg" color={pathname === "/notes" ? "primary" : "foreground"}>Notes</Link>
+            </NavbarMenuItem>
+          </>
+        )}
+        
+        <hr className="my-2 border-default-100" />
+        
+        {user ? (
+          <>
+            <NavbarMenuItem>
+              <Link as={NextLink} href={`/user/${user.id}`} className="w-full" size="lg">Mon Profil</Link>
+            </NavbarMenuItem>
+            <NavbarMenuItem>
+              <Link as={NextLink} href="/settings" className="w-full" size="lg">Paramètres</Link>
+            </NavbarMenuItem>
+            <NavbarMenuItem>
+              <Button color="danger" variant="flat" className="w-full justify-start px-0 bg-transparent text-danger" onClick={logout}>Déconnexion</Button>
+            </NavbarMenuItem>
+          </>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <NavbarMenuItem>
+              <Button as={NextLink} href="/login" variant="bordered" className="w-full" onClick={() => setIsMenuOpen(false)}>Connexion</Button>
+            </NavbarMenuItem>
+            <NavbarMenuItem>
+              <Button as={NextLink} href="/register" color="primary" className="w-full" onClick={() => setIsMenuOpen(false)}>S'inscrire</Button>
+            </NavbarMenuItem>
+          </div>
+        )}
+      </NavbarMenu>
     </Navbar>
   );
 }

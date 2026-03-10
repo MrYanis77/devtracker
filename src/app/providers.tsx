@@ -1,12 +1,18 @@
-"use client"; 
-import { HeroUIProvider } from '@heroui/react'
-import Navigation from '@/components/Navigation';
+// app/providers.tsx
+"use client";
 
-export function Providers({children}: { children: React.ReactNode }) {
+import { HeroUIProvider } from "@heroui/react";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { AppProvider } from "../context/AppContext";
+
+export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <HeroUIProvider>
-        <Navigation/>
-      {children}
-    </HeroUIProvider>
-  )
+    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+      <HeroUIProvider>
+        <AppProvider>
+          {children}
+        </AppProvider>
+      </HeroUIProvider>
+    </NextThemesProvider>
+  );
 }

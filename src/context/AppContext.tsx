@@ -1,69 +1,176 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import axios from 'axios';
 
-// 1. On définit l'interface (Optionnel mais recommandé avec TS)
-interface Repo {
+// --- Interfaces ---
+
+export interface Repo {
   id: number;
   name: string;
   description: string;
+  html_url: string;
   stargazers_count: number;
   language: string;
-  html_url: string;
 }
 
-interface AppContextType {
+export interface User {
+  id: number;
+  username: string;
+}
+
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  tag: string;
+  date: string;
+  userId: number; // Lie la note à l'utilisateur spécifique
+}
+
+interface ContextType {
+  // Auth
+  user: User | null;
+  loading: boolean;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => void;
+  
+  // GitHub Repos
+  repos: Repo[];
   favorites: Repo[];
-  toggleFavorite: (repo: Repo) => void;
-  isFavorite: (id: number) => boolean;
+  filter: string;
+  setFilter: (l: string) => void;
+  toggleFavorite: (r: Repo) => void;
+  
+  // Notes
+  notes: Note[];
+  addNote: (note: Omit<Note, "userId">) => void;
+  deleteNote: (id: string) => void;
 }
 
-// 2. Création du contexte
-const AppContext = createContext<AppContextType | undefined>(undefined);
+const AppContext = createContext<ContextType | undefined>(undefined);
 
-// 3. EXPORT de l'AppProvider (C'est ce qui manquait peut-être)
-export function AppProvider({ children }: { children: React.ReactNode }) {
+// --- Provider ---
+
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [repos, setRepos] = useState<Repo[]>([]);
   const [favorites, setFavorites] = useState<Repo[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [allNotes, setAllNotes] = useState<Note[]>([]); // Toutes les notes stockées
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('All');
 
+  // 1. Initialisation (LocalStorage)
   useEffect(() => {
-    const saved = localStorage.getItem("github-favorites");
-    if (saved) {
-      try {
-        setFavorites(JSON.parse(saved));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    setIsLoaded(true);
+    const savedFavs = localStorage.getItem('favs');
+    if (savedFavs) setFavorites(JSON.parse(savedFavs));
+
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) setUser(JSON.parse(savedUser));
+
+    const savedNotes = localStorage.getItem('user_notes');
+    if (savedNotes) setAllNotes(JSON.parse(savedNotes));
+
+    // Charger GitHub
+    axios.get('https://api.github.com/search/repositories?q=stars:>10000&sort=stars&per_page=20')
+      .then(res => setRepos(res.data.items))
+      .catch(() => console.error("Erreur API GitHub"))
+      .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("github-favorites", JSON.stringify(favorites));
-    }
-  }, [favorites, isLoaded]);
+  // --- Fonctions d'Authentification ---
 
-  const toggleFavorite = (repo: Repo) => {
-    setFavorites((prev) =>
-      prev.find((r) => r.id === repo.id)
-        ? prev.filter((r) => r.id !== repo.id)
-        : [...prev, repo]
-    );
+  const login = async (username: string, password: string) => {
+    setLoading(true);
+    try {
+      await new Promise((res) => setTimeout(res, 800)); // Simulation
+
+      if (username.trim().length > 0 && password.trim().length > 0) {
+        const userData = { 
+          id: Math.floor(Math.random() * 1000), 
+          username: username 
+        };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      } else {
+        throw new Error("Veuillez remplir tous les champs");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const isFavorite = (id: number) => favorites.some((r) => r.id === id);
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
+
+  // --- Fonctions Favoris & GitHub ---
+
+  const toggleFavorite = (repo: Repo) => {
+    const isFav = favorites.find(f => f.id === repo.id);
+    const updated = isFav 
+      ? favorites.filter(f => f.id !== repo.id) 
+      : [...favorites, repo];
+    
+    setFavorites(updated);
+    localStorage.setItem('favs', JSON.stringify(updated));
+  };
+
+  const filteredRepos = filter === 'All' 
+    ? repos 
+    : repos.filter(r => r.language === filter);
+
+  // --- Fonctions Notes ---
+
+  const addNote = (noteData: Omit<Note, "userId">) => {
+    if (!user) return;
+
+    const newNote: Note = {
+      ...noteData,
+      userId: user.id // On attache l'ID de l'utilisateur connecté
+    };
+
+    const updatedNotes = [...allNotes, newNote];
+    setAllNotes(updatedNotes);
+    localStorage.setItem('user_notes', JSON.stringify(updatedNotes));
+  };
+
+  const deleteNote = (id: string) => {
+    const updatedNotes = allNotes.filter(n => n.id !== id);
+    setAllNotes(updatedNotes);
+    localStorage.setItem('user_notes', JSON.stringify(updatedNotes));
+  };
+
+  // IMPORTANT : On ne filtre les notes à afficher que pour l'utilisateur actuel
+  const userNotes = allNotes.filter(n => n.userId === user?.id);
+
+  // --- Rendu du Provider ---
 
   return (
-    <AppContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
+    <AppContext.Provider value={{ 
+      user,
+      loading,
+      login,
+      logout,
+      repos: filteredRepos, 
+      favorites, 
+      filter, 
+      setFilter, 
+      toggleFavorite,
+      notes: userNotes, // On expose les notes filtrées
+      addNote,
+      deleteNote
+    }}>
       {children}
     </AppContext.Provider>
   );
-}
+};
 
-// 4. EXPORT du Hook
+// --- Hook Personnalisé ---
+
 export const useAppContext = () => {
   const context = useContext(AppContext);
-  if (!context) throw new Error("useAppContext must be used within AppProvider");
+  if (!context) throw new Error("Missing AppProvider");
   return context;
 };
