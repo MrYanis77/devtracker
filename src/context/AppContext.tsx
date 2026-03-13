@@ -1,22 +1,22 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 
-// --- Interfaces ---
+// --- INTERFACES ---
+
+export interface User {
+  username: string;
+  password?: string; // Optionnel dans la session, obligatoire dans le stockage "compte"
+}
 
 export interface Repo {
   id: number;
   name: string;
+  full_name: string;
   description: string;
   html_url: string;
   stargazers_count: number;
   language: string;
-}
-
-export interface User {
-  id: number;
-  username: string;
 }
 
 export interface Note {
@@ -24,153 +24,158 @@ export interface Note {
   title: string;
   content: string;
   tag: string;
-  date: string;
-  userId: number; // Lie la note à l'utilisateur spécifique
+  createdAt: string;
 }
 
-interface ContextType {
+interface AppContextType {
   // Auth
   user: User | null;
-  loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => boolean;
   logout: () => void;
-  
-  // GitHub Repos
+  // GitHub
   repos: Repo[];
-  favorites: Repo[];
+  favorites: number[];
+  loading: boolean;
+  error: string | null;
   filter: string;
-  setFilter: (l: string) => void;
-  toggleFavorite: (r: Repo) => void;
-  
+  setFilter: (filter: string) => void;
+  toggleFavorite: (id: number) => void;
   // Notes
   notes: Note[];
-  addNote: (note: Omit<Note, "userId">) => void;
+  addNote: (note: Omit<Note, 'id' | 'createdAt'>) => void;
   deleteNote: (id: string) => void;
 }
 
-const AppContext = createContext<ContextType | undefined>(undefined);
-
-// --- Provider ---
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  // États Authentification
   const [user, setUser] = useState<User | null>(null);
+  
+  // États GitHub
   const [repos, setRepos] = useState<Repo[]>([]);
-  const [favorites, setFavorites] = useState<Repo[]>([]);
-  const [allNotes, setAllNotes] = useState<Note[]>([]); // Toutes les notes stockées
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('All');
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<string>('');
 
-  // 1. Initialisation (LocalStorage)
+  // États Notes
+  const [notes, setNotes] = useState<Note[]>([]);
+
+  // --- 1. PERSISTENCE (LocalStorage) ---
+
   useEffect(() => {
-    const savedFavs = localStorage.getItem('favs');
-    if (savedFavs) setFavorites(JSON.parse(savedFavs));
+    // Charger la session utilisateur active
+    const savedUser = localStorage.getItem("app_user");
+    const savedNotes = localStorage.getItem("app_notes");
+    const savedFavs = localStorage.getItem("app_favorites");
 
-    const savedUser = localStorage.getItem('user');
     if (savedUser) setUser(JSON.parse(savedUser));
-
-    const savedNotes = localStorage.getItem('user_notes');
-    if (savedNotes) setAllNotes(JSON.parse(savedNotes));
-
-    // Charger GitHub
-    axios.get('https://api.github.com/search/repositories?q=stars:>10000&sort=stars&per_page=20')
-      .then(res => setRepos(res.data.items))
-      .catch(() => console.error("Erreur API GitHub"))
-      .finally(() => setLoading(false));
+    if (savedNotes) setNotes(JSON.parse(savedNotes));
+    if (savedFavs) setFavorites(JSON.parse(savedFavs));
   }, []);
 
-  // --- Fonctions d'Authentification ---
+  // Sauvegarde auto des notes et favoris
+  useEffect(() => {
+    localStorage.setItem("app_notes", JSON.stringify(notes));
+  }, [notes]);
 
-  const login = async (username: string, password: string) => {
-    setLoading(true);
-    try {
-      await new Promise((res) => setTimeout(res, 800)); // Simulation
+  useEffect(() => {
+    localStorage.setItem("app_favorites", JSON.stringify(favorites));
+  }, [favorites]);
 
-      if (username.trim().length > 0 && password.trim().length > 0) {
-        const userData = { 
-          id: Math.floor(Math.random() * 1000), 
-          username: username 
-        };
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-      } else {
-        throw new Error("Veuillez remplir tous les champs");
+
+  // --- 2. LOGIQUE AUTHENTIFICATION ---
+
+  const login = (username: string, password: string): boolean => {
+    // On cherche si un compte existe déjà pour ce nom d'utilisateur
+    const storedAccountRaw = localStorage.getItem(`user_account_${username}`);
+    
+    if (storedAccountRaw) {
+      const storedAccount = JSON.parse(storedAccountRaw);
+      // Vérification du mot de passe
+      if (storedAccount.password !== password) {
+        return false; 
       }
+    } else {
+      // Si le compte n'existe pas, on le crée (Inscription automatique)
+      const newAccount = { username, password };
+      localStorage.setItem(`user_account_${username}`, JSON.stringify(newAccount));
+    }
+
+    // Création de la session (on ne stocke pas le MDP dans le state pour plus de propreté)
+    const sessionUser = { username };
+    setUser(sessionUser);
+    localStorage.setItem("app_user", JSON.stringify(sessionUser));
+    return true;
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("app_user");
+  };
+
+
+  // --- 3. LOGIQUE GITHUB API ---
+
+  const fetchRepos = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const query = `stars:>10000${filter ? `+language:${filter}` : ''}`;
+      const response = await fetch(
+        `https://api.github.com/search/repositories?q=${query}&sort=stars&per_page=20`
+      );
+      if (!response.ok) throw new Error("Erreur de connexion à GitHub");
+      const data = await response.json();
+      setRepos(data.items || []);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  useEffect(() => {
+    fetchRepos();
+  }, [filter]);
+
+  const toggleFavorite = (id: number) => {
+    setFavorites((prev) => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
   };
 
-  // --- Fonctions Favoris & GitHub ---
 
-  const toggleFavorite = (repo: Repo) => {
-    const isFav = favorites.find(f => f.id === repo.id);
-    const updated = isFav 
-      ? favorites.filter(f => f.id !== repo.id) 
-      : [...favorites, repo];
-    
-    setFavorites(updated);
-    localStorage.setItem('favs', JSON.stringify(updated));
-  };
+  // --- 4. LOGIQUE DES NOTES ---
 
-  const filteredRepos = filter === 'All' 
-    ? repos 
-    : repos.filter(r => r.language === filter);
-
-  // --- Fonctions Notes ---
-
-  const addNote = (noteData: Omit<Note, "userId">) => {
-    if (!user) return;
-
-    const newNote: Note = {
-      ...noteData,
-      userId: user.id // On attache l'ID de l'utilisateur connecté
+  const addNote = (newNote: Omit<Note, 'id' | 'createdAt'>) => {
+    const note: Note = {
+      ...newNote,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
     };
-
-    const updatedNotes = [...allNotes, newNote];
-    setAllNotes(updatedNotes);
-    localStorage.setItem('user_notes', JSON.stringify(updatedNotes));
+    setNotes((prev) => [note, ...prev]);
   };
 
   const deleteNote = (id: string) => {
-    const updatedNotes = allNotes.filter(n => n.id !== id);
-    setAllNotes(updatedNotes);
-    localStorage.setItem('user_notes', JSON.stringify(updatedNotes));
+    setNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
-  // IMPORTANT : On ne filtre les notes à afficher que pour l'utilisateur actuel
-  const userNotes = allNotes.filter(n => n.userId === user?.id);
-
-  // --- Rendu du Provider ---
 
   return (
     <AppContext.Provider value={{ 
-      user,
-      loading,
-      login,
-      logout,
-      repos: filteredRepos, 
-      favorites, 
-      filter, 
-      setFilter, 
-      toggleFavorite,
-      notes: userNotes, // On expose les notes filtrées
-      addNote,
-      deleteNote
+      user, login, logout,
+      repos, favorites, loading, error, filter, setFilter, toggleFavorite,
+      notes, addNote, deleteNote 
     }}>
       {children}
     </AppContext.Provider>
   );
 };
 
-// --- Hook Personnalisé ---
-
-export const useAppContext = () => {
+export const useApp = () => {
   const context = useContext(AppContext);
-  if (!context) throw new Error("Missing AppProvider");
+  if (!context) throw new Error("useApp doit être utilisé dans un AppProvider");
   return context;
 };
