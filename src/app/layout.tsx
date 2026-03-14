@@ -1,8 +1,8 @@
 "use client";
 
 import { Providers } from "./providers";
-import Navigation from "@/Components/Navigation";
-import { useApp } from "@/Context/AppContext";
+import Navigation from "@/components/Navigation";
+import { useApp } from "@/context/AppContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import "./global.css";

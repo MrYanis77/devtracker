@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button, Card, CardBody } from "@heroui/react";
-import { useApp } from "@/Context/AppContext";
+import { useApp } from "@/context/AppContext";
 import NextLink from "next/link";
 
 export default function Home() {

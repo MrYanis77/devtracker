@@ -1,7 +1,7 @@
 "use client"
 import {HeroUIProvider} from '@heroui/react'
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { AppProvider } from "../Context/AppContext";
+import { AppProvider } from "../context/AppContext";
 
 export function Providers({children}: { children: React.ReactNode }) {
   return (

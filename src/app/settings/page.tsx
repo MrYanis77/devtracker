@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardBody, Button, Select, SelectItem, Switch } from "@heroui/react";
-import { useApp } from "@/Context/AppContext";
+import { useApp } from "@/context/AppContext";
 
 export default function SettingsPage() {
   const { user, logout, lang, setLang, resetApp } = useApp();

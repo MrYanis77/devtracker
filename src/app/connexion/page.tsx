@@ -10,7 +10,7 @@ import {
   Tab, 
   CardHeader
 } from "@heroui/react";
-import { useApp } from "@/Context/AppContext";
+import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
 
 export default function AuthPage() {

@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Select, SelectItem, Skeleton, Card } from "@heroui/react";
-import { useApp } from "@/Context/AppContext";
-import { RepoCard } from "@/Components/pages/RepoCard";
+import { useApp } from "@/context/AppContext";
+import { RepoCard } from "@/components/pages/RepoCard";
 
 export default function TrendingPage() {
   const { repos, loading, error, favorites, setFilter, lang } = useApp(); 

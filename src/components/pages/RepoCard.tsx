@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardBody, Button, Chip, Link, Avatar } from "@heroui/react";
-import { useApp, Repo } from "@/Context/AppContext";
+import { useApp, Repo } from "@/context/AppContext";
 
 export const RepoCard = ({ repo, isFav }: { repo: Repo; isFav: boolean }) => {
   const { toggleFavorite, lang } = useApp(); 
