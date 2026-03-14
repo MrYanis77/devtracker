@@ -3,7 +3,7 @@
 import { 
   Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button 
 } from "@heroui/react";
-import { useApp } from "@/Context/AppContext";
+import { useApp } from "@/context/AppContext";
 import Image from "next/image";
 import NextLink from "next/link";
 

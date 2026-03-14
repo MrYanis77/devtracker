@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { 
   Card, CardBody, Button, Chip, Input, Textarea, Select, SelectItem
 } from "@heroui/react";
-import { useApp, Note } from "@/Context/AppContext";
+import { useApp, Note } from "@/context/AppContext";
 
 const TAGS = ["React", "CSS", "DevOps", "IA", "TypeScript", "JavaScript"];
 
