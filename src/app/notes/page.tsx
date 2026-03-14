@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Input, Select, SelectItem } from "@heroui/react";
 import { useApp } from "@/Context/AppContext";
-import { NoteCard } from "@/Components/pages/NoteCard";
+import { NoteCard } from "../../Components/pages/NoteCard";
 
 const TAGS = ["React", "CSS", "DevOps", "IA", "TypeScript"];
 
