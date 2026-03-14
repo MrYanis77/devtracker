@@ -1,5 +1,4 @@
 "use client"
-// Le provider distribue la donnée
 import {HeroUIProvider} from '@heroui/react'
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { AppProvider } from "../Context/AppContext";

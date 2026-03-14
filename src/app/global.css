@@ -1,10 +1,35 @@
 @import "tailwindcss";
+@plugin '../../hero.ts';
+@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
 
-/* 1. On importe le plugin HeroUI */
-/* Si ton fichier hero.ts est à la racine, le chemin est correct */
-@plugin "../../hero.ts";
+@layer base {
+  :root {
+    --background: 210 33% 96%;
+    --foreground: 200 82% 15%; 
+    --secondary: 200 100% 36%;
+    --primary: 16 100% 66%; 
+    --card: 0 0% 100%;
+    --divider: 200 100% 36% / 0.1;
+    --heroui-radius-medium: 20px;
+    --heroui-radius-large: 40px;
+  }
 
-/* 2. IMPORTANT : On indique à Tailwind où chercher les classes CSS de HeroUI */
-/* Vérifie bien si tu as un dossier 'src'. Si oui, utilise ce chemin : */
-@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+  .dark {
+    --background: 200 100% 8%; 
+    --foreground: 210 33% 96%;
+    --primary: 16 100% 66%; 
+    --secondary: 200 80% 45%;
+    --card: 200 100% 12%;
+  }
+}
 
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-secondary: hsl(var(--secondary));
+  --radius-medium: 20px;
+  --radius-large: 40px;
+  --radius-full: 9999px;
+}

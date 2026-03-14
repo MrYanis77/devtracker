@@ -2,11 +2,9 @@
 
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 
-// --- INTERFACES ---
-
 export interface User {
   username: string;
-  password?: string; // Optionnel dans la session, obligatoire dans le stockage "compte"
+  password?: string;
 }
 
 export interface Repo {
@@ -28,11 +26,9 @@ export interface Note {
 }
 
 interface AppContextType {
-  // Auth
   user: User | null;
   login: (username: string, password: string) => boolean;
   logout: () => void;
-  // GitHub
   repos: Repo[];
   favorites: number[];
   loading: boolean;
@@ -40,42 +36,40 @@ interface AppContextType {
   filter: string;
   setFilter: (filter: string) => void;
   toggleFavorite: (id: number) => void;
-  // Notes
   notes: Note[];
   addNote: (note: Omit<Note, 'id' | 'createdAt'>) => void;
+  updateNote: (id: string, noteData: Partial<Omit<Note, 'id' | 'createdAt'>>) => void;
   deleteNote: (id: string) => void;
+  lang: 'fr' | 'en';
+  setLang: (l: 'fr' | 'en') => void;
+  resetApp: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  // États Authentification
+  // --- ÉTATS ---
   const [user, setUser] = useState<User | null>(null);
-  
-  // États GitHub
   const [repos, setRepos] = useState<Repo[]>([]);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('');
-
-  // États Notes
   const [notes, setNotes] = useState<Note[]>([]);
-
-  // --- 1. PERSISTENCE (LocalStorage) ---
+  const [lang, setLang] = useState<'fr' | 'en'>('fr');
 
   useEffect(() => {
-    // Charger la session utilisateur active
     const savedUser = localStorage.getItem("app_user");
     const savedNotes = localStorage.getItem("app_notes");
     const savedFavs = localStorage.getItem("app_favorites");
+    const savedLang = localStorage.getItem("app_lang") as 'fr' | 'en';
 
     if (savedUser) setUser(JSON.parse(savedUser));
     if (savedNotes) setNotes(JSON.parse(savedNotes));
     if (savedFavs) setFavorites(JSON.parse(savedFavs));
+    if (savedLang) setLang(savedLang);
   }, []);
 
-  // Sauvegarde auto des notes et favoris
   useEffect(() => {
     localStorage.setItem("app_notes", JSON.stringify(notes));
   }, [notes]);
@@ -84,26 +78,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("app_favorites", JSON.stringify(favorites));
   }, [favorites]);
 
-
-  // --- 2. LOGIQUE AUTHENTIFICATION ---
+  useEffect(() => {
+    localStorage.setItem("app_lang", lang);
+  }, [lang]);
 
   const login = (username: string, password: string): boolean => {
-    // On cherche si un compte existe déjà pour ce nom d'utilisateur
-    const storedAccountRaw = localStorage.getItem(`user_account_${username}`);
+    const accountKey = `user_account_${username}`;
+    const storedAccountRaw = localStorage.getItem(accountKey);
     
     if (storedAccountRaw) {
       const storedAccount = JSON.parse(storedAccountRaw);
-      // Vérification du mot de passe
-      if (storedAccount.password !== password) {
-        return false; 
-      }
+      if (storedAccount.password !== password) return false;
     } else {
-      // Si le compte n'existe pas, on le crée (Inscription automatique)
-      const newAccount = { username, password };
-      localStorage.setItem(`user_account_${username}`, JSON.stringify(newAccount));
+      localStorage.setItem(accountKey, JSON.stringify({ username, password }));
     }
 
-    // Création de la session (on ne stocke pas le MDP dans le state pour plus de propreté)
     const sessionUser = { username };
     setUser(sessionUser);
     localStorage.setItem("app_user", JSON.stringify(sessionUser));
@@ -115,9 +104,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("app_user");
   };
 
-
-  // --- 3. LOGIQUE GITHUB API ---
-
   const fetchRepos = async () => {
     setLoading(true);
     setError(null);
@@ -126,7 +112,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const response = await fetch(
         `https://api.github.com/search/repositories?q=${query}&sort=stars&per_page=20`
       );
-      if (!response.ok) throw new Error("Erreur de connexion à GitHub");
+      if (!response.ok) throw new Error("Erreur lors de la récupération des dépôts");
       const data = await response.json();
       setRepos(data.items || []);
     } catch (err: any) {
@@ -146,28 +132,43 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-
-  // --- 4. LOGIQUE DES NOTES ---
-
-  const addNote = (newNote: Omit<Note, 'id' | 'createdAt'>) => {
-    const note: Note = {
-      ...newNote,
-      id: crypto.randomUUID(),
+  const addNote = (noteData: { title: string; content: string; tag: string }) => {
+    const newNote: Note = {
+      ...noteData,
+      id: Date.now().toString(),
       createdAt: new Date().toISOString(),
     };
-    setNotes((prev) => [note, ...prev]);
+    setNotes((prev) => [newNote, ...prev]);
+  };
+
+  const updateNote = (id: string, noteData: Partial<Omit<Note, 'id' | 'createdAt'>>) => {
+    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, ...noteData } : n)));
   };
 
   const deleteNote = (id: string) => {
     setNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
+  const resetApp = () => {
+  try {
+    setNotes([]);
+    setFavorites([]);
+    setFilter(""); 
+    localStorage.removeItem("app_notes");
+    localStorage.removeItem("app_favorites");
+    
+    console.log("App reset successful");
+  } catch (e) {
+    console.error("Failed to reset app:", e);
+  }
+};
 
   return (
     <AppContext.Provider value={{ 
       user, login, logout,
       repos, favorites, loading, error, filter, setFilter, toggleFavorite,
-      notes, addNote, deleteNote 
+      notes, addNote, updateNote, deleteNote,
+      lang, setLang, resetApp
     }}>
       {children}
     </AppContext.Provider>

@@ -1,48 +1,119 @@
+"use client";
+
 import React from "react";
-import { Card, CardHeader, CardBody, CardFooter, Button, Chip, Link } from "@heroui/react";
+import { Card, CardBody, Button, Chip, Link, Avatar } from "@heroui/react";
 import { useApp, Repo } from "@/Context/AppContext";
 
-// On utilise directement Repo dans les arguments de la fonction
 export const RepoCard = ({ repo, isFav }: { repo: Repo; isFav: boolean }) => {
-  const { toggleFavorite } = useApp();
+  const { toggleFavorite, lang } = useApp(); 
+
+  const t = {
+    fr: {
+      view: "Voir",
+      status: "Global / Open Source"
+    },
+    en: {
+      view: "View",
+      status: "Global / Open Source" 
+    }
+  }[lang as "fr" | "en"] || { view: "Voir", status: "Global / Open Source" };
+
+  const pillStyle = { borderRadius: "9999px" };
 
   return (
-    <Card className="border-none shadow-sm hover:shadow-md transition-all h-full">
-      <CardHeader className="flex justify-between items-start pb-2">
-        <div className="flex flex-col">
-          <h3 className="text-lg font-bold truncate max-w-[180px]">{repo.name}</h3>
-          <p className="text-xs text-default-400">@{repo.full_name.split('/')[0]}</p>
+    <Card 
+      style={{ borderRadius: "40px" }}
+      className="p-2 border-none shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] transition-all bg-white"
+    >
+      <CardBody className="gap-5 p-4">
+        <div className="flex justify-between items-start px-2">
+          <div className="flex gap-4 items-center">
+            <Avatar
+              radius="full"
+              size="lg"
+              name={repo.language?.[0] || "R"}
+              style={pillStyle}
+              className="w-14 h-14 text-xl font-black bg-slate-100 text-slate-600"
+            />
+            <div>
+              <h3 className="text-xl font-[1000] tracking-tighter line-clamp-1 text-slate-800">
+                {repo.name}
+              </h3>
+              <p className="text-slate-400 text-sm font-bold uppercase tracking-tight">
+                {repo.full_name.split('/')[0]}
+              </p>
+            </div>
+          </div>
         </div>
-        <Button
-          isIconOnly
-          variant="light"
-          radius="full"
-          onPress={() => toggleFavorite(repo.id)}
-          className={isFav ? "text-danger" : "text-default-400"}
+
+        <div 
+          style={{ borderRadius: "30px" }}
+          className="bg-slate-50/80 p-6 space-y-3"
         >
-          {isFav ? "❤️" : "🤍"}
-        </Button>
-      </CardHeader>
+          <div className="text-slate-500 font-bold text-sm tracking-tight italic">
+            {t.status}
+          </div>
+          
+          <div className="flex items-center gap-2 text-slate-700">
+            <span className="text-amber-400 text-xl">★</span>
+            <span className="font-[1000] text-xl tracking-tighter">
+              {repo.stargazers_count.toLocaleString()}
+            </span>
+          </div>
 
-      <CardBody className="py-2">
-        <p className="text-sm text-default-600 line-clamp-3">
-          {repo.description || "Aucune description disponible."}
-        </p>
-      </CardBody>
-
-      <CardFooter className="flex justify-between items-center pt-4">
-        <div className="flex gap-2 items-center">
-          {repo.language && (
-            <Chip size="sm" variant="flat" color="primary">{repo.language}</Chip>
-          )}
-          <span className="text-xs font-bold text-default-500">
-            ⭐ {repo.stargazers_count.toLocaleString()}
-          </span>
+          <div className="flex flex-wrap gap-2 pt-1">
+            {repo.language && (
+              <Chip 
+                radius="full" 
+                style={pillStyle}
+                className="bg-white shadow-sm font-black text-[11px] px-4 h-7 border-none text-slate-600"
+              >
+                {repo.language}
+              </Chip>
+            )}
+            <Chip 
+              radius="full" 
+              style={pillStyle} 
+              className="bg-white shadow-sm font-black text-[11px] px-4 h-7 border-none text-slate-600"
+            >
+              Microservices
+            </Chip>
+            <Chip 
+              radius="full" 
+              style={pillStyle} 
+              className="bg-white shadow-sm font-black text-[11px] px-4 h-7 border-none text-slate-400"
+            >
+              +3
+            </Chip>
+          </div>
         </div>
-        <Link isExternal showAnchorIcon href={repo.html_url} size="sm" className="font-bold">
-          GitHub
-        </Link>
-      </CardFooter>
+
+        <div className="flex items-center gap-3 px-1">
+          <Button
+            isIconOnly
+            variant="bordered"
+            radius="full"
+            style={pillStyle}
+            className={`min-w-[58px] h-[58px] border-slate-100 text-xl transition-transform active:scale-90 ${
+              isFav ? "bg-red-50 border-red-100 text-red-500" : "bg-white text-slate-300"
+            }`}
+            onPress={() => toggleFavorite(repo.id)}
+          >
+            {isFav ? "❤️" : "♡"}
+          </Button>
+          
+          <Button
+            as={Link}
+            href={repo.html_url}
+            isExternal
+            radius="full"
+            style={pillStyle}
+            className="flex-grow h-[58px] font-[1000] bg-[#5865F2] text-white uppercase italic tracking-tight shadow-xl shadow-blue-500/20 flex items-center justify-center px-0 text-lg"
+          >
+            {t.view}
+          </Button>
+        </div>
+      </CardBody>
     </Card>
   );
 };

@@ -1,109 +1,101 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
-  Button, Input, Textarea, Select, SelectItem, Divider, 
-  Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure 
-} from "@heroui/react";
+import { Input, Select, SelectItem } from "@heroui/react";
 import { useApp } from "@/Context/AppContext";
 import { NoteCard } from "@/Components/pages/NoteCard";
 
 const TAGS = ["React", "CSS", "DevOps", "IA", "TypeScript"];
 
 export default function NotesPage() {
-  const { notes, addNote } = useApp();
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  
+  const { notes, lang } = useApp(); 
   const [search, setSearch] = useState("");
   const [filterTag, setFilterTag] = useState("all");
-  const [form, setForm] = useState({ title: "", content: "", tag: "React" });
 
-  const handleSave = () => {
-    if (!form.title || !form.content) return;
-    addNote(form);
-    setForm({ title: "", content: "", tag: "React" });
-    onOpenChange();
-  };
+  const t = {
+    fr: {
+      title: "Notes",
+      subtitle: "Ajoutez et gérez vos notes en un clic.",
+      search: "Rechercher...",
+      filter: "Filtrer par Tag",
+      allTags: "Tous les tags"
+    },
+    en: {
+      title: "Notes",
+      subtitle: "Add and manage your notes in one click.",
+      search: "Search...",
+      filter: "Filter by Tag",
+      allTags: "All tags"
+    }
+  }[lang as "fr" | "en"] || { title: "Notes" };
 
   const filteredNotes = notes.filter(n => {
-    const matchesSearch = n.title.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = n.title.toLowerCase().includes(search.toLowerCase()) || 
+                          n.content.toLowerCase().includes(search.toLowerCase());
     const matchesTag = filterTag === "all" || n.tag === filterTag;
     return matchesSearch && matchesTag;
   });
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
-      {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-4xl font-black italic uppercase tracking-tighter">Mes Notes</h1>
-        <Button color="primary" variant="shadow" onPress={onOpen} className="font-bold">
-          + Nouvelle Note
-        </Button>
+    <div className="min-h-screen bg-slate-50/50">
+      <div className="max-w-7xl mx-auto p-6 pt-10 space-y-12">
+        
+        <div className="space-y-1">
+          <h1 className="text-7xl font-[1000] italic uppercase tracking-tighter text-[#1e40af] leading-none">
+            {t.title}
+          </h1>
+          <p className="text-slate-400 font-bold text-lg ml-1">
+            {t.subtitle}
+          </p>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          <Input 
+            placeholder={t.search} 
+            className="flex-1"
+            value={search} 
+            onValueChange={setSearch} 
+            variant="flat"
+            classNames={{ 
+              inputWrapper: "bg-white h-16 px-6 shadow-sm border border-slate-100 rounded-full flex items-center",
+              input: "text-lg font-medium bg-transparent h-full !p-0"
+            }}
+          />
+          
+          <Select 
+            placeholder={t.filter}
+            className="w-full md:w-64" 
+            variant="flat"
+            selectorIcon={<span />} 
+            onSelectionChange={(k) => setFilterTag(Array.from(k)[0] as string)}
+            classNames={{ 
+                trigger: "bg-white h-16 px-6 shadow-sm border border-slate-100 rounded-full",
+                value: "text-lg font-bold text-slate-600"
+            }}
+            popoverProps={{
+                portalContainer: typeof document !== "undefined" ? document.body : undefined,
+                className: "rounded-2xl shadow-2xl border border-slate-100 bg-white"
+            }}
+          >
+            {[
+                <SelectItem key="all" textValue={t.allTags} className="font-bold">
+                  {t.allTags}
+                </SelectItem>,
+                ...TAGS.map(tTag => (
+                <SelectItem key={tTag} textValue={tTag} className="font-bold">
+                    {tTag}
+                </SelectItem>
+                ))
+            ]}
+          </Select>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 items-start">
+          <NoteCard isCreate={true} />
+          {filteredNotes.map(note => (
+            <NoteCard key={note.id} note={note} />
+          ))}
+        </div>
       </div>
-
-      {/* FILTRES */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <Input 
-          placeholder="Rechercher une note..." 
-          className="flex-1"
-          value={search} 
-          onValueChange={setSearch} 
-          variant="bordered"
-        />
-        <Select 
-          className="w-full md:w-48" 
-          label="Tag" 
-          onSelectionChange={(k) => setFilterTag(Array.from(k)[0] as string)}
-        >
-          <SelectItem key="all" textValue="Tous les tags">Tous les tags</SelectItem>
-          {TAGS.map(t => <SelectItem key={t} textValue={t}>{t}</SelectItem>)}
-        </Select>
-      </div>
-
-      <Divider />
-
-      {/* LISTE DES NOTES */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredNotes.map(note => (
-          <NoteCard key={note.id} note={note} />
-        ))}
-      </div>
-
-      {/* MODAL D'AJOUT */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop="blur">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="uppercase italic font-bold">Nouvelle Note</ModalHeader>
-              <ModalBody className="gap-4">
-                <Input 
-                  label="Titre" 
-                  placeholder="Le sujet de votre veille"
-                  value={form.title} 
-                  onValueChange={v => setForm({...form, title: v})} 
-                />
-                <Textarea 
-                  label="Contenu" 
-                  placeholder="Que voulez-vous retenir ?"
-                  value={form.content} 
-                  onValueChange={v => setForm({...form, content: v})} 
-                />
-                <Select 
-                  label="Tag" 
-                  selectedKeys={[form.tag]}
-                  onSelectionChange={(k) => setForm({...form, tag: Array.from(k)[0] as string})}
-                >
-                  {TAGS.map(t => <SelectItem key={t} textValue={t}>{t}</SelectItem>)}
-                </Select>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={onClose}>Annuler</Button>
-                <Button color="primary" className="font-bold" onPress={handleSave}>Enregistrer</Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
     </div>
   );
 }

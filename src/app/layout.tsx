@@ -1,28 +1,45 @@
-import type { Metadata } from "next";
-import { Providers } from "./providers"; // Vérifiez le chemin vers votre fichier Providers
+"use client";
+
+import { Providers } from "./providers";
 import Navigation from "@/Components/Navigation";
-import "./global.css"; // L'import qui posait problème précédemment
+import { useApp } from "@/Context/AppContext";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect } from "react";
+import "./global.css";
 
-export const metadata: Metadata = {
-  title: "DevTracker",
-  description: "Veille technologique pour développeurs",
-};
+function AuthWrapper({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useApp(); 
+  const router = useRouter();
+  const pathname = usePathname();
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+  const publicRoutes = ["/", "/connexion", "/inscription"];
+
+  useEffect(() => {
+    if (!loading && !user && !publicRoutes.includes(pathname)) {
+      router.push("/");
+    }
+  }, [user, loading, pathname, router]);
+
+  if (loading && !publicRoutes.includes(pathname)) {
+    return <div className="h-screen bg-white" />; 
+  }
+
+  return <>{children}</>;
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body className="min-h-screen bg-background antialiased font-sans">
         <Providers>
-          <div className="relative flex flex-col h-screen">
-            <Navigation />
-            <main className="container mx-auto max-w-7xl px-6 flex-grow pt-8">
-              {children}
-            </main>
-          </div>
+          <AuthWrapper>
+            <div className="relative flex flex-col h-screen">
+              <Navigation />
+              <main className="container mx-auto max-w-7xl px-6 flex-grow pt-8">
+                {children}
+              </main>
+            </div>
+          </AuthWrapper>
         </Providers>
       </body>
     </html>

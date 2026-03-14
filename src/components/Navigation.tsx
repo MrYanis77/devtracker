@@ -1,12 +1,11 @@
-"use client"
+"use client";
 
 import { 
-  Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, 
-  Dropdown, DropdownTrigger, DropdownMenu, DropdownItem 
+  Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button 
 } from "@heroui/react";
 import { useApp } from "@/Context/AppContext";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
+import NextLink from "next/link";
 
 export const Logo = () => (
   <div className="flex items-center justify-center">
@@ -22,66 +21,93 @@ export const Logo = () => (
 );
 
 export default function AppNavbar() {
-  const { user, logout } = useApp();
-  const router = useRouter();
+  const { user, lang } = useApp();
 
-  const handleLogout = () => {
-    logout();
-    router.push("/connexion");
+  const labels = {
+    fr: {
+      trending: "Trending",
+      notes: "Notes",
+      profil: "Profil",
+      connexion: "Connexion"
+    },
+    en: {
+      trending: "Trending",
+      notes: "Notes",
+      profil: "Profile",
+      connexion: "Login"
+    }
   };
 
+  const t = labels[lang as "fr" | "en"] || labels.fr;
+
   return (
-    <Navbar shouldHideOnScroll isBordered>
-      <NavbarBrand>
+    <Navbar shouldHideOnScroll isBordered className="bg-white h-20">
+      <NavbarBrand as={NextLink} href="/" className="cursor-pointer">
         <Logo />
-        <p className="font-bold text-inherit ml-2">DevTracker</p>
+        <p className="font-bold text-inherit ml-2 text-xl tracking-tight">DevTracker</p>
       </NavbarBrand>
 
-      {/* Liens centraux : uniquement si connecté */}
       {user && (
-        <NavbarContent className="hidden sm:flex gap-6" justify="center">
+        <NavbarContent className="hidden sm:flex gap-10" justify="center">
           <NavbarItem>
-            <Link color="foreground" href="/trending">Trending</Link>
+            <Link 
+              as={NextLink}
+              href="/trending" 
+              color="foreground" 
+              className="font-bold text-sm uppercase tracking-wide"
+            >
+              {t.trending}
+            </Link>
           </NavbarItem>
           <NavbarItem>
-            <Link color="foreground" href="/notes">Notes</Link>
+            <Link 
+              as={NextLink}
+              href="/notes" 
+              color="foreground" 
+              className="font-bold text-sm uppercase tracking-wide"
+            >
+              {t.notes}
+            </Link>
           </NavbarItem>
         </NavbarContent>
       )}
 
-      <NavbarContent as="div" justify="end">
+      <NavbarContent justify="end">
         {user ? (
-          <Dropdown placement="bottom-end">
-            <DropdownTrigger>
-              {/* On remplace l'Avatar par un bouton affichant le nom de l'utilisateur */}
-              <Button 
-                variant="bordered" 
-                color="secondary" 
-                size="sm" 
-                className="font-bold italic uppercase"
-              >
-                {user.username} ▼
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu aria-label="Actions profil" variant="flat">
-              <DropdownItem key="profile" className="h-14 gap-2">
-                <p className="font-semibold">Connecté en tant que</p>
-                <p className="font-semibold text-secondary">{user.username}</p>
-              </DropdownItem>
-              <DropdownItem key="settings">Mes Paramètres</DropdownItem>
-              <DropdownItem 
-                key="logout" 
-                color="danger" 
-                onPress={handleLogout}
-              >
-                Déconnexion
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+          <NavbarItem>
+            <Button 
+              as={NextLink}
+              href="/settings" 
+              variant="solid" 
+              className="
+                bg-blue-600 
+                text-white 
+                font-bold 
+                text-sm
+                w-32 
+                h-11 
+                rounded-[4px] 
+                flex 
+                items-center 
+                justify-center 
+                hover:bg-blue-700 
+                transition-all 
+                shadow-none
+              "
+            >
+              {t.profil}
+            </Button>
+          </NavbarItem>
         ) : (
           <NavbarItem>
-            <Button as={Link} color="primary" href="/connexion" variant="flat">
-              Connexion
+            <Button 
+              as={NextLink} 
+              color="primary" 
+              href="/connexion" 
+              variant="flat" 
+              className="font-bold rounded-md"
+            >
+              {t.connexion}
             </Button>
           </NavbarItem>
         )}
