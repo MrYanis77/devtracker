@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { Input, Select, SelectItem } from "@heroui/react";
-import { useApp } from "../../Context/AppContext";
-import { NoteCard } from "../../Components/pages/NoteCard";
+import { useApp } from "@/Context/AppContext"; // Corrigé
+import { NoteCard } from "@/Components/pages/NoteCard"; // Corrigé
 
 const TAGS = ["React", "CSS", "DevOps", "IA", "TypeScript"];
 
