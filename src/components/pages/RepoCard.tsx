@@ -94,7 +94,7 @@ export const RepoCard = ({ repo, isFav }: { repo: Repo; isFav: boolean }) => {
             variant="bordered"
             radius="full"
             style={pillStyle}
-            className={`min-w-[58px] h-[58px] border-slate-100 text-xl transition-transform active:scale-90 ${
+            className={`min-w-58px h-58px border-slate-100 text-xl transition-transform active:scale-90 ${
               isFav ? "bg-red-50 border-red-100 text-red-500" : "bg-white text-slate-300"
             }`}
             onPress={() => toggleFavorite(repo.id)}
@@ -108,7 +108,7 @@ export const RepoCard = ({ repo, isFav }: { repo: Repo; isFav: boolean }) => {
             isExternal
             radius="full"
             style={pillStyle}
-            className="flex-grow h-[58px] font-[1000] bg-[#5865F2] text-white uppercase italic tracking-tight shadow-xl shadow-blue-500/20 flex items-center justify-center px-0 text-lg"
+            className="grow h-58px font-[1000] bg-[#5865F2] text-white uppercase italic tracking-tight shadow-xl shadow-blue-500/20 flex items-center justify-center px-0 text-lg"
           >
             {t.view}
           </Button>

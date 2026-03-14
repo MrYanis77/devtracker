@@ -114,7 +114,7 @@ export default function SettingsPage() {
             <p className="text-lg font-bold dark:text-white">{t.account}</p>
             <Button 
               onPress={() => { logout(); window.location.href = "/"; }}
-              className="bg-blue-600 text-white font-bold text-sm w-32 h-11 rounded-[4px] hover:bg-blue-700 shadow-none"
+              className="bg-blue-600 text-white font-bold text-sm w-32 h-11 rounded hover:bg-blue-700 shadow-none"
             >
               {t.logout}
             </Button>

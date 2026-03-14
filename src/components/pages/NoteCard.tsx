@@ -36,7 +36,7 @@ export const NoteCard = ({ note, isCreate }: { note?: Note; isCreate?: boolean }
 
   if (isCreate || isEditing) {
     return (
-      <Card className="p-0 bg-white shadow-xl rounded-[24px] border border-slate-100 w-full h-fit overflow-visible flex flex-col transition-all">
+      <Card className="p-0 bg-white shadow-xl rounded-24px border border-slate-100 w-full h-fit overflow-visible flex flex-col transition-all">
         <CardBody className="flex flex-col p-6 gap-y-6 overflow-visible h-full">
   
           <Input 

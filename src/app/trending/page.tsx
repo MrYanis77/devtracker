@@ -47,7 +47,7 @@ export default function TrendingPage() {
 
         <Select 
           placeholder={t.placeholder}
-          className="max-w-[280px]"
+          className="max-w-280"
           variant="bordered"
           disallowEmptySelection
           defaultSelectedKeys={["all"]}
@@ -97,7 +97,7 @@ export default function TrendingPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 relative z-10">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="h-[480px] rounded-[40px] p-2 border-none shadow-none bg-slate-50">
+            <Card key={i} className="h-480px rounded-40px p-2 border-none shadow-none bg-slate-50">
               <Skeleton className="rounded-[35px] h-full w-full opacity-50" />
             </Card>
           ))

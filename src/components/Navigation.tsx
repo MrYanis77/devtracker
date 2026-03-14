@@ -86,7 +86,7 @@ export default function AppNavbar() {
                 text-sm
                 w-32 
                 h-11 
-                rounded-[4px] 
+                rounded-4px 
                 flex 
                 items-center 
                 justify-center 

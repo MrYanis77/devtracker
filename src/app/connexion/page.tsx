@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Key } from "react"; // Ajout de Key pour le typage
 import { 
   Card, 
   CardBody, 
@@ -18,6 +18,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isVisible, setIsVisible] = useState(false);
+  const [selected, setSelected] = useState<Key>("connexion");
 
   const { login } = useApp();
   const router = useRouter();
@@ -38,13 +39,13 @@ export default function AuthPage() {
     if (success) {
       router.push("/trending");
     } else {
-      setError("Mot de passe incorrect pour cet utilisateur.");
+      setError("Mot de passe incorrect ou erreur d'authentification.");
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
-      <Card className="w-full max-w-[400px] shadow-2xl">
+      <Card className="w-full max-w-sm shadow-2xl">
         <CardHeader className="flex flex-col gap-1 items-center pt-8">
           <h1 className="text-3xl font-black uppercase italic tracking-tighter text-blue-600">
             DevTracker
@@ -58,7 +59,11 @@ export default function AuthPage() {
             aria-label="Options d'accès"
             variant="underlined"
             color="primary"
-            onSelectionChange={() => setError("")}
+            selectedKey={selected as string}
+            onSelectionChange={(key) => {
+              setSelected(key);
+              setError(""); // Reset de l'erreur au changement d'onglet
+            }}
             classNames={{
               tabList: "justify-center", 
               tab: "flex justify-center items-center", 
@@ -84,19 +89,22 @@ export default function AuthPage() {
                   value={password}
                   onValueChange={setPassword}
                   endContent={
-                    <button className="focus:outline-none text-xs font-bold" type="button" onClick={toggleVisibility}>
-                      {isVisible ? "Masquer" : "Afficher"}
+                    <button className="focus:outline-none" type="button" onClick={toggleVisibility}>
+                      {isVisible ? (
+                        <span className="text-xs font-bold text-default-400">Masquer</span>
+                      ) : (
+                        <span className="text-xs font-bold text-default-400">Afficher</span>
+                      )}
                     </button>
                   }
                 />
-                {error && <p className="text-tiny text-danger font-bold">{error}</p>}
+                {error && <p className="text-tiny text-danger font-bold text-center">{error}</p>}
                 <Button type="submit" className="bg-blue-600 text-white font-bold uppercase">
                   Se connecter
                 </Button>
               </form>
             </Tab>
 
-            {/* --- INSCRIPTION --- */}
             <Tab key="inscription" title="Inscription">
               <form onSubmit={handleAction} className="flex flex-col gap-4 mt-6">
                 <Input
@@ -116,7 +124,7 @@ export default function AuthPage() {
                   value={password}
                   onValueChange={setPassword}
                 />
-                <p className="text-tiny text-default-400 px-1">
+                <p className="text-tiny text-default-400 px-1 italic">
                   Un nouveau compte sera créé si le pseudo n'existe pas.
                 </p>
                 <Button type="submit" className="bg-blue-600 text-white font-bold uppercase">

@@ -60,7 +60,7 @@ export default function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32 max-w-6xl w-full relative z-10">
         {t.features.map((f, i) => (
-          <Card key={i} shadow="none" className="bg-slate-50 border border-slate-100 rounded-[40px] p-6 hover:bg-slate-100 transition-colors">
+          <Card key={i} shadow="none" className="bg-slate-50 border border-slate-100 rounded-40px p-6 hover:bg-slate-100 transition-colors">
             <CardBody className="flex flex-col gap-4">
               <div className="bg-white w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-sm">
                 {f.icon}
@@ -75,8 +75,8 @@ export default function Home() {
           </Card>
         ))}
       </div>
-      <div className="fixed top-1/4 -right-20 w-[600px] h-[600px] bg-blue-100 rounded-full blur-[140px] -z-10 opacity-40 animate-pulse" />
-      <div className="fixed -bottom-20 -left-20 w-[500px] h-[500px] bg-slate-200 rounded-full blur-[120px] -z-10 opacity-30" />
+      <div className="fixed top-1/4 -right-20 w-600px h-600px bg-blue-100 rounded-full blur-[140px] -z-10 opacity-40 animate-pulse" />
+      <div className="fixed -bottom-20 -left-20 w-500px h-500px bg-slate-200 rounded-full blur-[120px] -z-10 opacity-30" />
     </div>
   );
 }

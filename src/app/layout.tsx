@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AuthWrapper>
             <div className="relative flex flex-col h-screen">
               <Navigation />
-              <main className="container mx-auto max-w-7xl px-6 flex-grow pt-8">
+              <main className="container mx-auto max-w-7xl px-6 flex pt-8">
                 {children}
               </main>
             </div>
