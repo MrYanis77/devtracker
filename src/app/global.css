@@ -4,29 +4,25 @@
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
+
   :root {
-    --background: 210 33% 96%;
-    --foreground: 200 82% 15%; 
-    --secondary: 200 100% 36%;
-    --primary: 16 100% 66%; 
-    --card: 0 0% 100%;
-    --divider: 200 100% 36% / 0.1;
+    --background: hsl(210 33% 96%);
+    --foreground: hsl(200 82% 15%);
+    --secondary: hsl(200 100% 36%);
+    --primary: hsl(16 100% 66%);
+    --card: hsl(0 0% 100%);
+    --divider: hsl(200 100% 36% / 0.1);
+
     --heroui-radius-medium: 20px;
     --heroui-radius-large: 40px;
   }
 
   .dark {
-    --background: 200 100% 8%; 
-    --foreground: 210 33% 96%;
-    --primary: 16 100% 66%; 
-    --secondary: 200 80% 45%;
-    --card: 200 100% 12%;
+    --background: hsl(200 100% 8%);
+    --foreground: hsl(210 33% 96%);
+    --primary: hsl(16 100% 66%);
+    --secondary: hsl(200 80% 45%);
+    --card: hsl(200 100% 12%);
   }
-}
 
-@theme {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-secondary: var(--secondary);
 }
