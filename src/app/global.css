@@ -6,10 +6,10 @@
 @layer base {
 
   :root {
-    --background: hsl(210 33% 96%);
-    --foreground: hsl(200 82% 15%);
-    --secondary: hsl(200 100% 36%);
-    --primary: hsl(16 100% 66%);
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --secondary: 210 40% 96.1%;
     --card: hsl(0 0% 100%);
     --divider: hsl(200 100% 36% / 0.1);
 
@@ -18,8 +18,8 @@
   }
 
   .dark {
-    --background: hsl(200 100% 8%);
-    --foreground: hsl(210 33% 96%);
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
     --primary: hsl(16 100% 66%);
     --secondary: hsl(200 80% 45%);
     --card: hsl(200 100% 12%);
