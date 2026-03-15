@@ -10,6 +10,11 @@
 !.yarn/releases
 !.yarn/versions
 
+# Logs
+*.log
+npm-debug.log*
+
+
 # testing
 /coverage
 
@@ -39,3 +44,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Fichiers IDE — propres à chaque poste
+.vscode/
+.idea/
+.DS_Store
+
